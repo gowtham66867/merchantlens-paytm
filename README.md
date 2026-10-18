@@ -42,7 +42,7 @@ New interviews support **English, हिन्दी (Hindi), ಕನ್ನಡ (K
 
 [See the participant’s actual live voice session: transcript, screenshot and limitations](docs/LIVE-VOICE-DEMO.md). The 3:44 video above is the earlier typed-response walkthrough; no audio from the later participant session was stored.
 
-50 automated tests and TypeScript passed. Live Hindi/Kannada Gemini text smoke tests returned native-script questions with exact source quotes. Native multilingual speech accuracy is not yet benchmarked.
+52 automated tests and TypeScript passed. Live Hindi/Kannada Gemini text smoke tests returned native-script questions with exact source quotes. Native multilingual speech accuracy is not yet benchmarked.
 
 ## Recorded voice input
 

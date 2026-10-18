@@ -38,7 +38,7 @@ The excerpt preserves the visible wording, including disfluencies. The final que
 - Browser spoken output chooses a matching available voice. If the device has no Hindi/Kannada voice, the app displays a notice and retains the on-screen question. No universal native-voice availability is claimed.
 - Wispr Flow remains optional external dictation into the answer box; no Wispr API integration is claimed.
 
-Fifty automated tests and TypeScript passed before deployment. Native-script merchant interviews and noisy multilingual speech still need broader human evaluation; the participant's observed test above was English.
+Fifty-two automated tests and TypeScript passed before deployment. Native-script merchant interviews and noisy multilingual speech still need broader human evaluation; the participant's observed test above was English.
 
 ## Additional synthetic audio smoke checks
 
@@ -48,3 +48,5 @@ The actual Gemini transcription endpoint was exercised with WebM/Opus clips gene
 - Kannada: “ನನ್ನ ಅಂಗಡಿಯಲ್ಲಿ ಸೌಂಡ್ ಬಾಕ್ಸ್ ನಲ್ಲಿ ಧ್ವನಿ ಬರುತ್ತಿಲ್ಲ ಆಯಪ್ ನಲ್ಲಿ ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿದೆ”
 
 These tests establish native-script audio processing for the synthetic clips. They are not a fluent-speaker review, an accent/noise benchmark, or proof of verbatim accuracy. In particular, Kannada spelling and punctuation should be reviewed by the merchant before sending. The participant's earlier human test was English.
+
+A later hosted Kannada test returned a mixture of Kannada and unrelated Arabic characters. This prompted an additional script-validation guard: recorded-audio transcription may retry once within the same 45-second deadline and rejects repeated wrong-script output. Hindi/Kannada may retain Latin words actually spoken in English. This guard does not establish spelling or semantic accuracy; review remains required.

@@ -24,3 +24,7 @@ export function localQuestion(key:string,language:string,english:string,romanize
 }
 export function hasRequestedScript(text:string,language:string){return language==='hi-IN'?/[\u0900-\u097f]/u.test(text):language==='kn-IN'?/[\u0c80-\u0cff]/u.test(text):true;}
 export function transcriptionInstruction(language:string){return language==='kn-IN'?'The selected interview language is Kannada. Transcribe Kannada in Kannada script, preserving English words as spoken.':language==='hi-IN'?'The selected interview language is Hindi. Transcribe Hindi in Devanagari, preserving English words as spoken.':language==='hi-Latn-IN'?'The selected language is Hinglish. Romanize Hindi words and preserve English words.':'Preserve the spoken language and its native script. Do not translate.';}
+export function hasUnexpectedScript(text:string,language:string){
+ const allowed=language==='hi-IN'?/[\p{Script=Devanagari}\p{Script=Latin}]/u:language==='kn-IN'?/[\p{Script=Kannada}\p{Script=Latin}]/u:language==='hi-Latn-IN'?/\p{Script=Latin}/u:null;
+ return Boolean(allowed&&[...text].some(ch=>/\p{L}/u.test(ch)&&!allowed.test(ch)));
+}
