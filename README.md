@@ -108,7 +108,11 @@ flowchart TD
     Limits["Per interview turn: at most 4 model calls, 3 tool calls and 1 shared repair"] -.-> Extract
     Limits -.-> Critic
     Limits -.-> Plan
-    Failure["Provider or validation failure: preserve answer and commit no new interview state"] -.-> Return
+    Extract -.-> Failure["Provider or validation failure"]
+    Verify -.-> Failure
+    Critic -.-> Failure
+    Plan -.-> Failure
+    Failure --> Preserved["Return error; browser preserves answer and prior interview state"]
 ```
 
 Critique and retrieval run **in parallel after source verification**. Gemini mode uses three separately scoped roles on the configured Gemini model; guided mode uses deterministic code adapters. These are roles in one harness, not independent model agents. The eight observed stages count retrieval and critique separately. The trace checkpoint above is a turn fingerprint, not a public cloud database write.

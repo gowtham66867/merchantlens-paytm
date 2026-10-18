@@ -20,7 +20,11 @@ flowchart TD
     Limits["Per interview turn: at most 4 model calls, 3 tool calls and 1 shared repair"] -.-> Extract
     Limits -.-> Critic
     Limits -.-> Plan
-    Failure["Provider or validation failure: preserve answer and commit no new interview state"] -.-> Return
+    Extract -.-> Failure["Provider or validation failure"]
+    Verify -.-> Failure
+    Critic -.-> Failure
+    Plan -.-> Failure
+    Failure --> Preserved["Return error; browser preserves answer and prior interview state"]
 ```
 
 The diagram describes the public Cloud Run harness. Public sessions stay in browser storage, and public checkpoint APIs return 403. The checkpoint stage records a source fingerprint and run trace. Private D1 or Cloud Storage save/restore adapters are optional deployment variants. See the [README runtime diagram](../README.md#architecture) for consented audio transcription, browser playback, approvals and export.
