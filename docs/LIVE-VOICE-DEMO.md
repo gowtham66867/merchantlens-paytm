@@ -39,3 +39,12 @@ The excerpt preserves the visible wording, including disfluencies. The final que
 - Wispr Flow remains optional external dictation into the answer box; no Wispr API integration is claimed.
 
 Fifty automated tests and TypeScript passed before deployment. Native-script merchant interviews and noisy multilingual speech still need broader human evaluation; the participant's observed test above was English.
+
+## Additional synthetic audio smoke checks
+
+The actual Gemini transcription endpoint was exercised with WebM/Opus clips generated using the macOS Hindi voice Lekha and Kannada voice Soumya. Returned transcripts included:
+
+- Hindi: “मेरी दुकान में Soundbox से आवाज़ नहीं आ रही है। ऐप में भुगतान सफल दिख रहा है।”
+- Kannada: “ನನ್ನ ಅಂಗಡಿಯಲ್ಲಿ ಸೌಂಡ್ ಬಾಕ್ಸ್ ನಲ್ಲಿ ಧ್ವನಿ ಬರುತ್ತಿಲ್ಲ ಆಯಪ್ ನಲ್ಲಿ ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿದೆ”
+
+These tests establish native-script audio processing for the synthetic clips. They are not a fluent-speaker review, an accent/noise benchmark, or proof of verbatim accuracy. In particular, Kannada spelling and punctuation should be reviewed by the merchant before sending. The participant's earlier human test was English.
