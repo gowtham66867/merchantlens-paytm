@@ -104,3 +104,7 @@ The model roles, retry bounds, critic rejection, gate override and token account
 ## Timing interpretation
 
 Trace durations use the runtime clock and exclude browser/network transport. Some Worker runtimes do not advance the clock during code-only work; zero readings are displayed as clock-limited, not as evidence of zero latency. Live-model end-to-end latency still needs measurement.
+
+## Support continuity
+
+The [support journey](SUPPORT-JOURNEY.md) attaches merchant-entered prior attempts to the existing session and source turns. Deterministic next-step rules recommend human review after repeated unresolved notes, with immediate human request available. It is an illustrative workflow alongside the existing interview harness; no new autonomous agent, verified Paytm layer map or ticket API is claimed. Support history is included in private checkpoint schemas and reviewed internal exports; edits invalidate approvals and anonymized exports omit free-text history.

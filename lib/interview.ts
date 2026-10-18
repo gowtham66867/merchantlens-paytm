@@ -1,10 +1,11 @@
+import {supportMarkdown,supportHandoff,type SupportJourney,type SupportStage,type SupportOutcome} from './support-journey.ts';
 import { localQuestion } from './languages.ts';
 import type { RunTrace } from './agents/types';
 export type Topic = 'symptom' | 'payment_status' | 'settlement' | 'frequency' | 'impact' | 'workaround' | 'attempts' | 'constraints' | 'outcome' | 'affected_value';
 export type Turn = { id: string; role: 'agent' | 'merchant'; text: string; at: number; topic?: Topic };
 export type Fact = { id: string; topic: Topic; label: string; value: string; quote: string; turnId: string; kind: 'reported' | 'estimate'; previous?: string };
 export type Audit = { id: string; text: string; at: number };
-export type Session = { id: string; alias: string; business: string; language: string; turns: Turn[]; facts: Fact[]; version: number; approvedInternal: number | null; approvedPublic: number | null; status: 'interviewing' | 'review' | 'approved'; summary: string; audit: Audit[]; synthetic: boolean; createdAt: number; provider: 'guided' | 'gemini'; runs?: RunTrace[] };
+export type Session = { id: string; alias: string; business: string; language: string; turns: Turn[]; facts: Fact[]; version: number; approvedInternal: number | null; approvedPublic: number | null; status: 'interviewing' | 'review' | 'approved'; summary: string; audit: Audit[]; synthetic: boolean; createdAt: number; provider: 'guided' | 'gemini'; runs?: RunTrace[]; supportJourney?:SupportJourney };
 export type AgentResult = { response: string; topic?: Topic; facts: Fact[]; ready: boolean; purpose: string; provider: 'guided' | 'gemini'; run?: RunTrace };
 export const topics: { key: Topic; label: string; question: string; hindi: string; purpose: string; sample: string }[] = [
  { key: 'symptom', label: 'What is happening', question: 'Tell me about a recent payment problem at your shop. What happened?', hindi: 'Apni dukaan mein payment ki kisi recent dikkat ke baare mein bataiye. Kya hua tha?', purpose: 'Start with a concrete incident in the merchant’s own words.', sample: 'This morning the Soundbox stayed silent after a customer paid. I think I lost ₹2,400. Customers were waiting at the counter.' },
@@ -64,6 +65,15 @@ export function applyResult(s: Session, merchantTurn: Turn, result: AgentResult)
 }
 export function finishSession(s: Session): Session { return { ...s, status: 'review', version: s.version + 1, approvedInternal: null, approvedPublic: null }; }
 export function mutate(s: Session, text: string): Session { return { ...s, version: s.version + 1, approvedInternal: null, approvedPublic: null, status: s.status === 'interviewing' ? 'interviewing' : 'review', audit: [...s.audit, { id: uid(), text, at: Date.now() }] }; }
+export function recordSupportAttempt(s:Session,stage:SupportStage,channel:string,action:string,outcome:SupportOutcome):Session {
+ if(!action.trim()||!channel.trim())throw Error('Describe the channel and what was tried.');
+ if((s.supportJourney?.attempts.length||0)>=20)throw Error('This demo supports up to 20 prior attempts.');
+ const at=Date.now(),turnId=uid(),cleanAction=scrub(action.trim()).slice(0,1000),cleanChannel=scrub(channel.trim()).slice(0,100);
+ const text=`Earlier support attempt — channel: ${cleanChannel}. Action: ${cleanAction}. Merchant-reported outcome: ${outcome}.`;
+ const attempt={id:uid(),stage,channel:cleanChannel,action:cleanAction,outcome,at,turnId};
+ return{...mutate(s,'Support history added. Prior approvals invalidated.'),turns:[...s.turns,{id:turnId,role:'merchant',topic:'attempts',text,at}],facts:upsert(s.facts,{id:uid(),topic:'attempts',label:'Already attempted',value:text,quote:text,turnId,kind:'reported'}),supportJourney:{humanRequested:s.supportJourney?.humanRequested||false,attempts:[...(s.supportJourney?.attempts||[]),attempt]}};
+}
+export function requestSupportHuman(s:Session):Session { return{...mutate(s,'Merchant requested human support. No ticket has been sent.'),supportJourney:{attempts:s.supportJourney?.attempts||[],humanRequested:true}}; }
 export function correctFact(s: Session, id: string, value: string): Session {
  const original = s.facts.find(f => f.id === id);
  if (!original || !value.trim()) return s;
@@ -74,7 +84,7 @@ export function correctFact(s: Session, id: string, value: string): Session {
 export function redactSession(s: Session, term: string): Session {
  if (!term.trim()) return s; const clean = (v: string) => scrub(v, [term.trim()]);
  const deepClean = (value: unknown): unknown => typeof value === 'string' ? clean(value) : Array.isArray(value) ? value.map(deepClean) : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([k,v]) => [k, deepClean(v)])) : value;
- return { ...mutate(s, 'A private detail was removed from retained text. Prior approvals invalidated.'), runs: s.runs ? deepClean(s.runs) as RunTrace[] : undefined, alias: clean(s.alias), business: clean(s.business), summary: clean(s.summary), turns: s.turns.map(t => ({ ...t, text: clean(t.text) })), facts: s.facts.map(f => ({ ...f, value: clean(f.value), quote: clean(f.quote), previous: f.previous ? clean(f.previous) : undefined })), audit: [...s.audit.map(a => ({ ...a, text: clean(a.text) })), { id: uid(), text: 'A private detail was removed from retained text. Prior approvals invalidated.', at: Date.now() }] };
+ return { ...mutate(s, 'A private detail was removed from retained text. Prior approvals invalidated.'), runs: s.runs ? deepClean(s.runs) as RunTrace[] : undefined, supportJourney:s.supportJourney?deepClean(s.supportJourney) as SupportJourney:undefined, alias: clean(s.alias), business: clean(s.business), summary: clean(s.summary), turns: s.turns.map(t => ({ ...t, text: clean(t.text) })), facts: s.facts.map(f => ({ ...f, value: clean(f.value), quote: clean(f.quote), previous: f.previous ? clean(f.previous) : undefined })), audit: [...s.audit.map(a => ({ ...a, text: clean(a.text) })), { id: uid(), text: 'A private detail was removed from retained text. Prior approvals invalidated.', at: Date.now() }] };
 }
 export function completeness(s: Session) { return Math.round(topics.filter(t => s.facts.some(f => f.topic === t.key)).length / topics.length * 100); }
 export function unknowns(s: Session) { return [...topics.filter(t => !s.facts.some(f => f.topic === t.key)).map(t => t.label), 'Root cause is not independently verified', 'Financial loss is not independently verified', 'Bank settlement has not been independently verified']; }
@@ -100,18 +110,20 @@ export function makeBrief(s: Session, audience: 'internal' | 'public') {
   id: pub ? 'ANONYMIZED' : s.id, version: s.version, audience: pub ? 'Anonymized builder brief' : 'Internal investigation brief', synthetic: s.synthetic,
   approval: (pub ? s.approvedPublic : s.approvedInternal) === s.version ? 'Approved by merchant for this version' : 'Draft — not approved',
   merchant: pub ? 'Anonymous small retailer' : scrub(s.alias),
+  support_handoff:pub?{basis:'Support details retained in the private interview',ticket_created:false}:supportHandoff(s),
   problem: pub ? (hasSymptom?`A small retailer reports ${s.facts.some(f => f.topic === 'symptom' && /damag|broken|crack/i.test(f.value)) ? 'a damaged payment announcement device' : 'a payment-confirmation problem at checkout'}. Investigate the reported workflow and impact; root cause and financial loss remain unverified.`:'An incomplete merchant interview. Further detail is needed before a problem can be stated.') : scrub(problemStatement(s)),
   observations: s.facts.map(f => ({ topic: f.label, statement: pub ? publicFact(f) : scrub(f.value), basis: f.kind === 'estimate' ? 'Merchant estimate; unverified' : 'Merchant report; unverified', evidence: pub ? 'Source retained in private interview' : f.turnId, ...(!pub ? { quote: scrub(f.quote) } : {}) })),
   unknowns: unknowns(s), hypotheses: hasSymptom?['Device, audio delivery, and connectivity are possible investigation areas, not established causes.']:[],
   next_steps: ['Review a merchant-approved incident example and its payment record.', 'Check audio/device events separately from payment and settlement records.', 'Observe the checkout workaround and measure queue disruption.', 'Confirm recurrence before prioritizing a product change.'],
   proposed_success_measures: ['Time needed for staff to confirm a payment', 'Frequency of checkout interruptions', 'Completeness of evidence at handoff'],
-  routing: !hasSymptom?'More merchant information is required before routing.':s.facts.some(f => f.topic === 'symptom' && /damag|broken|crack/i.test(f.value)) ? 'Merchant device operations — damage reported; human assessment needed' : 'Merchant operations → payments/device product investigation; human triage needed',
+  routing: s.supportJourney?.humanRequested?'Human merchant-support review requested; carry incomplete evidence and prior attempts forward.':!hasSymptom?'More merchant information is required before routing.':s.facts.some(f => f.topic === 'symptom' && /damag|broken|crack/i.test(f.value)) ? 'Merchant device operations — damage reported; human assessment needed' : 'Merchant operations → payments/device product investigation; human triage needed',
   limitations: ['No live Paytm connection or independent transaction verification.', 'Reported experiences do not establish financial loss or root cause.', 'Public output uses conservative topic templates; review for contextual re-identification before sharing.'],
  };
 }
 export function briefMarkdown(s: Session, audience: 'internal' | 'public') {
  const b = makeBrief(s, audience);
- return `# MerchantLens · ${b.audience}\n\n${b.id} · Version ${b.version} · ${b.approval}\n${b.synthetic ? '\nSYNTHETIC DEMONSTRATION DATA\n' : ''}\n## Problem\n${b.problem}\n\n## Observations\n${b.observations.map(o => `- **${o.topic}:** ${o.statement}\n  Basis: ${o.basis}. Evidence: ${o.evidence}`).join('\n')}\n\n## Unknowns\n${b.unknowns.map(x => `- ${x}`).join('\n')}\n\n## Investigation\n${b.next_steps.map(x => `- ${x}`).join('\n')}\n\n## Suggested routing\n${b.routing}\n\n## Limitations\n${b.limitations.map(x => `- ${x}`).join('\n')}\n`;
+ const journey=audience==='internal'?`\n${supportMarkdown(s)}\n`:'';
+ return `# MerchantLens · ${b.audience}\n\n${b.id} · Version ${b.version} · ${b.approval}\n${b.synthetic ? '\nSYNTHETIC DEMONSTRATION DATA\n' : ''}\n## Problem\n${b.problem}\n\n## Observations\n${b.observations.map(o => `- **${o.topic}:** ${o.statement}\n  Basis: ${o.basis}. Evidence: ${o.evidence}`).join('\n')}\n\n## Unknowns\n${b.unknowns.map(x => `- ${x}`).join('\n')}\n\n## Investigation\n${b.next_steps.map(x => `- ${x}`).join('\n')}\n\n## Suggested routing\n${b.routing}\n\n${journey}\n## Limitations\n${b.limitations.map(x => `- ${x}`).join('\n')}\n`;
 }
 export function seededSessions(): Session[] {
  let main = newSession('en-IN', true); main.id = 'ML-0181'; main.alias = 'Neighbourhood Kirana';

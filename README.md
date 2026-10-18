@@ -14,6 +14,10 @@ Sole participant: **Gowtham Ramachandra**.
 
 Current public deployment uses browser-local drafts; private cloud checkpoint APIs are intentionally unavailable. Live Gemini was smoke-tested. Human spoken-input accuracy remains unvalidated. See the latest section of docs/VALIDATION.md for current results.
 
+## Support journey
+
+Carry prior app, bot, device or staff interactions into a source-linked handoff. Five **illustrative** stages capture what was tried and what remains unresolved; they are not Paytm’s verified internal layer names. Human review can be requested immediately, without completing stages. History changes invalidate export approval, and anonymized briefs omit free-text support details. No ticket is sent. See [research, implementation and integration boundaries](docs/SUPPORT-JOURNEY.md).
+
 ## Presentation
 
 [Download the detailed five-slide PowerPoint](docs/MerchantLens-Five-Slide-Pitch.pptx). It includes speaker notes on the business case, verifiability, voice/runtime architecture, agent contracts, guardrails, evaluations, ROI assumptions and proposed Paytm integration.
@@ -46,7 +50,7 @@ New interviews support **English, हिन्दी (Hindi), ಕನ್ನಡ (K
 
 [See the participant’s actual live voice session: transcript, screenshot and limitations](docs/LIVE-VOICE-DEMO.md). The 3:44 video above is the earlier typed-response walkthrough; no audio from the later participant session was stored.
 
-56 automated tests and TypeScript passed. Live Hindi/Kannada Gemini text smoke tests returned native-script questions with exact source quotes. Native multilingual speech accuracy is not yet benchmarked.
+61 automated tests and TypeScript passed. Live Hindi/Kannada Gemini text smoke tests returned native-script questions with exact source quotes. Native multilingual speech accuracy is not yet benchmarked.
 
 ## Recorded voice input
 
@@ -147,7 +151,7 @@ Core files:
 ## Verify
 
 ```sh
-node --experimental-strip-types --test tests/languages.test.ts tests/transcription.test.ts tests/interview.test.ts tests/agents.test.ts tests/checkpoints.test.ts tests/cloudrun-store.test.ts tests/request-origin.test.ts tests/voice-activity.test.ts tests/speech.test.ts
+node --experimental-strip-types --test tests/languages.test.ts tests/transcription.test.ts tests/interview.test.ts tests/agents.test.ts tests/checkpoints.test.ts tests/cloudrun-store.test.ts tests/request-origin.test.ts tests/voice-activity.test.ts tests/speech.test.ts tests/support-journey.test.ts
 # With the local dev server and migrated D1 running:
 node --test tests/api.test.mjs
 node --experimental-strip-types --test tests/checkpoints-api.test.mjs
