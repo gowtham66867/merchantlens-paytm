@@ -1,3 +1,4 @@
+import { localQuestion } from './languages.ts';
 import type { RunTrace } from './agents/types';
 export type Topic = 'symptom' | 'payment_status' | 'settlement' | 'frequency' | 'impact' | 'workaround' | 'attempts' | 'constraints' | 'outcome' | 'affected_value';
 export type Turn = { id: string; role: 'agent' | 'merchant'; text: string; at: number; topic?: Topic };
@@ -23,7 +24,7 @@ export function scrub(text: string, terms: string[] = []): string {
  for (const term of terms.filter(x => x.trim())) s = s.replace(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '[detail removed]');
  return s;
 }
-export function greeting(language: string): Turn { return { id: uid(), role: 'agent', text: language === 'hi-IN' ? topics[0].hindi : topics[0].question, topic: 'symptom', at: Date.now() }; }
+export function greeting(language: string): Turn { return { id: uid(), role: 'agent', text: localQuestion('symptom',language,topics[0].question,topics[0].hindi), topic: 'symptom', at: Date.now() }; }
 export function newSession(language = 'en-IN', synthetic = false): Session {
  const at = Date.now();
  return { id: `ML-${uid().slice(0, 8).toUpperCase()}`, alias: synthetic ? 'Neighbourhood Kirana' : 'Merchant interview', business: 'Small retail', language, turns: [greeting(language)], facts: [], version: 1, approvedInternal: null, approvedPublic: null, status: 'interviewing', summary: '', audit: [{ id: uid(), text: 'Interview consent recorded. Audio is not retained by MerchantLens.', at }], synthetic, createdAt: at, provider: 'guided' };
@@ -34,7 +35,7 @@ export function guidedInterview(turns: Turn[], oldFacts: Fact[], language = 'en-
  const prompt = [...turns].reverse().find(t => t.role === 'agent'); const text = last.text; let facts = [...oldFacts];
  const add = (topic: Topic, value: string, kind: Fact['kind'] = 'reported') => { facts = upsert(facts, { id: uid(), topic, label: labelFor(topic), value, quote: text, turnId: last.id, kind }); };
  if (/ignore (?:all |previous |your )?instructions|system prompt|mark .*verified|approve (?:everything|this)/i.test(text)) return { response: 'I can capture your experience, but approval happens in the review screen. What happened at your shop?', topic: 'symptom', facts, ready: false, purpose: 'Keep participant instructions separate from evidence and approvals.', provider: 'guided' };
- const stop = /^(?:stop|finish|end|that.s all|done)[.!\s]*$/i.test(text.trim());
+ const stop = /^(?:stop|finish|end|that.s all|done|बस|रोकिए|समाप्त|बस इतना ही|ನಿಲ್ಲಿಸಿ|ಮುಗಿಸಿ|ಸಾಕು)[.!।\s]*$/i.test(text.trim());
  if (!stop) {
   if (prompt?.topic && prompt.topic !== 'affected_value') add(prompt.topic, text, /about|estimate|roughly|around|two or three|andaaz/i.test(text) ? 'estimate' : 'reported');
   if (/soundbox|sound box|speaker|awaaz/i.test(text) && /silent|missing|no sound|not working|chup|nahi|damag|broken|crack/i.test(text)) add('symptom', /damag|broken|crack/i.test(text) ? 'Merchant reports a damaged Soundbox device.' : 'Merchant reports missing or delayed Soundbox audio confirmation at checkout.');
@@ -43,18 +44,18 @@ export function guidedInterview(turns: Turn[], oldFacts: Fact[], language = 'en-
   if (/times? (?:a|per) day|daily|every day|haft|roz|since.*week/i.test(text)) add('frequency', text, 'estimate');
   if (/restart|reboot|reset|already tried/i.test(text)) add('attempts', text);
   if (prompt?.topic === 'affected_value' || /(?:₹|rs\.?|rupees?)\s*[\d,]+|[\d,]+\s*rupees/i.test(text)) {
-   const corrected = /not.*(?:loss|lost)|(?:affected|payment) value|value of.*payment|correction/i.test(text);
+   const corrected = /not.*(?:loss|lost)|(?:affected|payment) value|value of.*payment|correction|नुकसान नहीं|नुकसान की पुष्टि नहीं|ನಷ್ಟವಲ್ಲ|ನಷ್ಟವಾಗಿಲ್ಲ|ಪಾವತಿಗಳ ಮೊತ್ತ/i.test(text);
    add('affected_value', corrected ? `${text} Amount is affected payment value; financial loss is not established.` : `${text} Amount meaning requires clarification; financial loss is not established.`);
   }
  }
  const amount = facts.find(f => f.topic === 'affected_value');
- if (!stop && amount?.value.includes('requires clarification') && prompt?.topic !== 'affected_value') return { response: language === 'hi-IN' ? 'Yeh amount affected payments ka hai, ya aapne actual nuksaan confirm kiya hai?' : 'Is that amount the value of affected payments, or have you confirmed an actual financial loss?', topic: 'affected_value', facts, ready: false, purpose: 'Clarify payment value versus financial loss before recording impact.', provider: 'guided' };
+ if (!stop && amount?.value.includes('requires clarification') && prompt?.topic !== 'affected_value') return { response: localQuestion('affected_value',language,'Is that amount the value of affected payments, or have you confirmed an actual financial loss?','Yeh amount affected payments ka hai, ya aapne actual nuksaan confirm kiya hai?'), topic: 'affected_value', facts, ready: false, purpose: 'Clarify payment value versus financial loss before recording impact.', provider: 'guided' };
  const next = topics.find(t => !facts.some(f => f.topic === t.key));
- if (stop || !next) return { response: language === 'hi-IN' ? 'Shukriya. Draft taiyaar hai. Review karke galti sudhaariye aur share karne se pehle approve kijiye.' : 'Thank you. Your draft is ready for review. Check the details, remove anything private, and approve each version before exporting.', facts, ready: true, purpose: stop ? 'Respect early finish and preserve unanswered questions.' : 'Return control to the merchant before handoff.', provider: 'guided' };
+ if (stop || !next) return { response: localQuestion('finish',language,'Thank you. Your draft is ready for review. Check the details, remove anything private, and approve each version before exporting.','Shukriya. Draft taiyaar hai. Review karke galti sudhaariye aur share karne se pehle approve kijiye.'), facts, ready: true, purpose: stop ? 'Respect early finish and preserve unanswered questions.' : 'Return control to the merchant before handoff.', provider: 'guided' };
  const damaged = facts.some(f => f.topic === 'symptom' && /damag|broken|crack/i.test(f.value));
- let question = language === 'hi-IN' ? next.hindi : next.question;
- if (damaged && next.key === 'payment_status') question = language === 'hi-IN' ? 'Soundbox damage ke baad merchant app mein payment entries dikh rahi hain?' : 'Since the device was damaged, are payment entries still appearing in the merchant app?';
- if (damaged && next.key === 'attempts') question = language === 'hi-IN' ? 'Device ke damage ke liye ab tak support se baat ki hai?' : 'Have you already contacted support about the damage, and what happened?';
+ let question = localQuestion(next.key,language,next.question,next.hindi);
+ if (damaged && next.key === 'payment_status') question = localQuestion('damage_status',language,'Since the device was damaged, are payment entries still appearing in the merchant app?','Soundbox damage ke baad merchant app mein payment entries dikh rahi hain?');
+ if (damaged && next.key === 'attempts') question = localQuestion('damage_attempts',language,'Have you already contacted support about the damage, and what happened?','Device ke damage ke liye ab tak support se baat ki hai?');
  return { response: question, topic: next.key, facts, ready: false, purpose: next.purpose, provider: 'guided' };
 }
 export function applyResult(s: Session, merchantTurn: Turn, result: AgentResult): Session {

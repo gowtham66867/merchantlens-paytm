@@ -36,6 +36,14 @@ GEMINI_MODEL=gemini-3.5-flash-lite
 
 Do not commit credentials. No provider key is required for the guided demo. Wispr Flow can dictate into the answer field, but is not the reasoning backend. Gemini is shown as unavailable until the server reports a configured key. Provider failure preserves the typed answer and never silently changes to the guided engine. The default model ID is configurable and must be available to your project.
 
+## Languages and live participant demo
+
+New interviews support **English, हिन्दी (Hindi), ಕನ್ನಡ (Kannada), and romanized Hinglish**. The selected language controls recorded-audio transcription, guided questions and live Gemini planning. Speech playback requires a matching device voice; the interface warns when one is unavailable. Source quotes keep their original script; the workspace and internal summaries may remain English.
+
+[See the participant’s actual live voice session: transcript, screenshot and limitations](docs/LIVE-VOICE-DEMO.md). The 3:44 video above is the earlier typed-response walkthrough; no audio from the later participant session was stored.
+
+50 automated tests and TypeScript passed. Live Hindi/Kannada Gemini text smoke tests returned native-script questions with exact source quotes. Native multilingual speech accuracy is not yet benchmarked.
+
 ## Recorded voice input
 
 When Gemini is configured, allow recorded-audio processing, click the microphone, speak for up to 45 seconds, then stop. Gemini transcribes the clip into the answer field. Review and send explicitly. Audio is sent to Google but is not stored by MerchantLens. This avoids reliance on the browser Web Speech network service. Synthetic spoken audio passed a live transcription smoke test; real microphone and noisy-audio accuracy remain to be validated. The recorded demo predates this fallback.

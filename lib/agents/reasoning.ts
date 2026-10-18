@@ -1,3 +1,4 @@
+import { localQuestion,hasRequestedScript } from '../languages.ts';
 import { topics, type Fact, type Topic, type Turn } from '../interview.ts';
 import type { CandidateClaim, Challenge, QuestionCandidate } from './types.ts';
 export function verifyClaims(claims: CandidateClaim[], turns: Turn[]): void {
@@ -10,7 +11,7 @@ export function verifyClaims(claims: CandidateClaim[], turns: Turn[]): void {
   if (/(?<!un|not |not independently )\bverified\b|\bconfirmed (?:payment|bank credit|settlement)\b/i.test(claim.value) && !/merchant (?:reports|says)|not (?:independently )?verified/i.test(claim.value)) throw new Error('A merchant report cannot be promoted to independent verification.');
  }
 }
-export const isStop = (text: string) => /^(?:(?:please|can we|let.s|i want to)\s+)?(?:stop|finish|end|done|that.s all)(?:\s+(?:now|here|the interview|this interview|please|thanks|thank you))*[.!\s]*$/i.test(text.trim());
+export const isStop = (text: string) => /^(?:बस|रोकिए|समाप्त|बस इतना ही|ನಿಲ್ಲಿಸಿ|ಮುಗಿಸಿ|ಸಾಕು)[.!।\s]*$/u.test(text.trim()) || /^(?:(?:please|can we|let.s|i want to)\s+)?(?:stop|finish|end|done|that.s all)(?:\s+(?:now|here|the interview|this interview|please|thanks|thank you))*[.!\s]*$/i.test(text.trim());
 const polarity = (text: string) => /not (?:show|received|success)|no (?:payment|entry)|failed|unsuccessful/i.test(text) ? 'negative' : /success|received|entry visible/i.test(text) ? 'positive' : 'unknown';
 export function assessChallenges(turns: Turn[], oldFacts: Fact[], facts: Fact[]): Challenge[] {
  const challenges: Challenge[]=[];
@@ -27,14 +28,14 @@ export function assessChallenges(turns: Turn[], oldFacts: Fact[], facts: Fact[])
  return challenges;
 }
 export function rankQuestions(turns: Turn[], facts: Fact[], challenges: Challenge[], language: string): QuestionCandidate[] {
- const hindi=language==='hi-IN';
- const explicit=challenges.filter(c=>!c.resolved).map(c=>({topic:c.topic,score:c.type==='contradiction'?110:120,reason:c.summary,question:hindi&&c.type==='amount_ambiguity'?'Yeh amount affected payments ka hai, ya aapne actual nuksaan confirm kiya hai?':c.question,priority:'clarify' as const}));
+ const hindi=language==='hi-Latn-IN';
+ const explicit=challenges.filter(c=>!c.resolved).map(c=>({topic:c.topic,score:c.type==='contradiction'?110:120,reason:c.summary,question:localQuestion(c.type==='amount_ambiguity'?'affected_value':c.type==='contradiction'?'contradiction':hasRequestedScript(c.question,language)?'custom':c.topic,language,c.question,hindi&&c.type==='amount_ambiguity'?'Yeh amount affected payments ka hai, ya aapne actual nuksaan confirm kiya hai?':c.question),priority:'clarify' as const}));
  const damaged=facts.some(f=>f.topic==='symptom'&&/damag|broken|crack/i.test(f.value));
  const weights: Record<string,number>={symptom:100,payment_status:94,settlement:89,frequency:75,impact:83,workaround:72,attempts:69,constraints:62,outcome:60};
  const candidates=topics.filter(t=>!facts.some(f=>f.topic===t.key)).map(t=>{
   const attempts=turns.filter(turn=>turn.role==='agent'&&turn.topic===t.key).length;
-  let question=hindi?t.hindi:t.question;
-  if(damaged&&t.key==='payment_status')question=hindi?'Soundbox damage ke baad app mein payment entries dikh rahi hain?':'Since the device was damaged, are payment entries still appearing in the merchant app?';
+  let question=localQuestion(t.key,language,t.question,t.hindi);
+  if(damaged&&t.key==='payment_status')question=localQuestion('damage_status',language,'Since the device was damaged, are payment entries still appearing in the merchant app?','Soundbox damage ke baad app mein payment entries dikh rahi hain?');
   return {topic:t.key,score:weights[t.key]-(attempts>1?20:0),reason:t.purpose,question,priority:'discover' as const};
  });
  return [...explicit,...candidates].sort((a,b)=>b.score-a.score);
