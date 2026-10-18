@@ -22,6 +22,8 @@ Carry prior app, bot, device or staff interactions into a source-linked handoff.
 
 [Download the detailed five-slide PowerPoint](docs/MerchantLens-Five-Slide-Pitch.pptx). It includes speaker notes on the business case, verifiability, voice/runtime architecture, agent contracts, guardrails, evaluations, ROI assumptions and proposed Paytm integration.
 
+[Technical feedback register: all 35 captured items, implementation status and open gaps](docs/TECHNICAL-FEEDBACK.md). The five-slide PowerPoint includes the register mapped into its speaker notes. Only the user-reported five-layer statement is attributed to the Paytm leader.
+
 ## Run
 
 Requires Node.js 22.13+ (Node 24 tested).
