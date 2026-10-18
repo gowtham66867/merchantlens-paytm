@@ -15,14 +15,6 @@ Relevant repositories inspected:
 
 No prize status was established for these individual repositories. They are architectural references, not verified winners in this report.
 
-## ARGUS
-
-https://github.com/nithesh1705/argus-bfsi-compliance-intelligence
-
-Inspected the investigation-agent source, repository documentation, live console and deck. Its source enforces citation, source-quote and severity/timestamp checks. MerchantLens implements source checks and a separately scoped critic, but does not perform statutory analysis or reuse ARGUS's reported benchmark.
-
-Source reviewed: https://github.com/nithesh1705/argus-bfsi-compliance-intelligence/blob/main/backend/agents/investigation_agent.py
-
 ## Verified winners from Microsoft's AI Agents Hackathon 2025
 
 Organizer winner list: https://github.com/microsoft/AI_Agents_Hackathon/blob/main/docs/winners.md

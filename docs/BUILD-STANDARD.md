@@ -1,4 +1,4 @@
-# MerchantLens: ARGUS-inspired build standard
+# MerchantLens build standard
 
 ## Business case
 
@@ -8,24 +8,17 @@ The buyer hypothesis is merchant operations/product discovery at a payment provi
 
 Illustrative unit economics only: 10,000 cases/month × 3 handling minutes saved × ₹6/minute = ₹180,000/month gross handling savings. Every input is assumed. Subtract inference, infrastructure, integration, and human review before estimating net value.
 
-## Reference and adaptation
+## Product requirements
 
-Reference: https://github.com/nithesh1705/argus-bfsi-compliance-intelligence
-Reference prototype: https://argus-frontend-833068408683.asia-south1.run.app/
-Reference deck: https://storage.googleapis.com/vision-hack2skill-production/innovator/USER01275532/1792311017184-ARGUSFrustratedEngineersAIBuilderCup.pdf
-Demo supplied by user: https://www.youtube.com/watch?v=86cyyduS8o4
-
-Reviewed: live ARGUS dashboard, repository documentation, and the 13-page deck. The video could not be retrieved; no claim is made that it was watched. ARGUS's published benchmarks are third-party project reports and do not apply to MerchantLens.
-
-| ARGUS pattern | MerchantLens implementation |
+| Requirement | MerchantLens implementation |
 |---|---|
-| Timestamped call evidence | Timestamped conversation turns and source-linked observations |
-| Detection and investigation | Adaptive interview and explicit unknowns |
-| Evidence chain | Observation → exact quote → source turn |
-| Case reviewer | Merchant correction, redaction and version-bound approval |
+| Conversation evidence | Timestamped turns and source-linked observations |
+| Problem clarification | Adaptive interview and explicit unknowns |
+| Source traceability | Observation → exact quote → source turn |
+| Merchant review | Correction, redaction and version-bound approval |
 | Operational workspace | Overview, interview studio, evidence chain, brief and activity views |
-| Grounded output | Private investigation brief and conservative anonymized builder version |
-| Cloud deployment | Private Sites deployment; no claim of GCP deployment |
+| Useful output | Internal problem brief and conservative anonymized builder version |
+| Deployment | Public Cloud Run demo with server-side secrets and browser-local interview storage |
 
 ## Interview prompt
 
@@ -35,4 +28,4 @@ You are MerchantLens, a concise, neutral merchant problem interviewer. Understan
 
 Guided mode uses transparent deterministic rules. It is not an LLM and is deliberately limited. Gemini mode uses a server-only key, structured output validation, and exact quote checks. Both modes label all observations as reports or estimates. Local regex masking is a convenience, not a certified privacy system. Public briefs omit verbatim speech and identifiers and generalize topic content; this reduces detail. All private text needs review before external sharing.
 
-Browser-local persistence is suitable for a demo on a trusted device. It is not an encrypted enterprise database. No transaction, bank, or device integration exists. No audio is recorded or retained by the app; Web Speech may transmit audio to the browser's speech provider. Voice recognition, Hindi accuracy and browser audio playback require manual testing on the actual demo device.
+Browser-local persistence is suitable for a demo on a trusted device. It is not an encrypted enterprise database. No transaction, bank, or device integration exists. Consented audio is recorded temporarily and sent to Google for transcription; MerchantLens does not persist raw audio. Gemini natural speech reads interviewer questions, with device playback as a fallback. Synthetic English, Hindi and Kannada audio smoke tests passed; real merchant and noisy-shop accuracy still require validation.

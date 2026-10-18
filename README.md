@@ -2,7 +2,7 @@
 
 **Every merchant story. A clearer problem.**
 
-A working voice-first merchant problem intake prototype with a bounded agent graph for Challenge 2 of the Paytm × AI Garage buildathon, built using ARGUS as a benchmark for traceability and human review.
+A working voice-first merchant problem intake prototype with a bounded agent graph for Challenge 2 of the Paytm × AI Garage buildathon, with source traceability and merchant-controlled review.
 
 ## Submission
 
@@ -161,7 +161,7 @@ The last command uses the installed Sites helper; elsewhere use `npm run build`.
 
 This is an independent buildathon prototype. It is not an official Paytm product and has no live payment, settlement, device, refund or support-ticket integration. All seeded merchant records are synthetic. Merchant speech is not independent verification. Public briefs conservatively generalize content; privacy patterns are not comprehensive. Private drafts can contain personal information and should be reviewed before export. Browser-local data is not encrypted application storage. Production use needs access controls, encryption, retention controls, rate limits, privacy review, and broader language/device evaluation.
 
-The live Gemini integration and microphone/audio round trip require credentials and/or the user's actual demo hardware. Do not represent them as tested until validated. No ARGUS benchmark is reused as a MerchantLens result.
+The live Gemini integration and microphone/audio round trip require credentials and/or the user's actual demo hardware. Do not represent them as tested until validated. No external project benchmark is claimed as a MerchantLens result.
 
 See `docs/BUILD-STANDARD.md`, `docs/DEMO.md`, and `docs/VALIDATION.md` for the business case, reference adaptation, demo sequence and actual verification results.
 
@@ -175,7 +175,7 @@ node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1
 
 Apply only once to a fresh local database. Hosted migrations are applied by Sites publication. Open the Agent control room, sign in using the local sign-in link when prompted, and save or restore a checkpoint explicitly.
 
-See `docs/REFERENCE-REVIEW.md` for the Sanjay Prasad/LVL, ARGUS, Apollo and ModelProof comparison, including which prize claims were independently supported by the organizer.
+See `docs/REFERENCE-REVIEW.md` for the Sanjay Prasad/LVL, Apollo and ModelProof comparison, including which prize claims were independently supported by the organizer.
 
 ### Voice improvements
 
