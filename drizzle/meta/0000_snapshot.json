@@ -1,0 +1,71 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "42a7b7a5-4213-42cf-afba-a147ff065bbd",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "interview_checkpoints": {
+      "name": "interview_checkpoints",
+      "columns": {
+        "owner_id": {
+          "name": "owner_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload": {
+          "name": "payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "interview_checkpoints_owner_id_session_id_pk": {
+          "columns": [
+            "owner_id",
+            "session_id"
+          ],
+          "name": "interview_checkpoints_owner_id_session_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

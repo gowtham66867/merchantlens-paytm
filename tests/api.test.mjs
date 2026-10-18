@@ -1,0 +1,12 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:5173';
+const request = (data, origin) => fetch(`${base}/api/interview`, {method:'POST',headers:{'Content-Type':'application/json',...(origin ? {Origin:origin} : {})},body:JSON.stringify(data)});
+const input = () => ({mode:'guided',language:'en-IN',facts:[],turns:[{id:'a1',role:'agent',text:'What happened?',topic:'symptom',at:1},{id:'m1',role:'merchant',text:'My Soundbox is silent. I lost ₹2,400.',at:2}]});
+test('provider status exposes configuration state without credentials',async()=>{ const r=await fetch(`${base}/api/provider`);assert.equal(r.status,200);const b=await r.json();assert.equal(typeof b.configured,'boolean');assert(!('key' in b));assert.equal(b.paytm,'Not connected'); });
+test('guided API returns adaptive follow-up with source-grounded claims',async()=>{const r=await request(input());assert.equal(r.status,200);const b=await r.json();assert.equal(b.topic,'affected_value');assert.equal(b.provider,'guided');for(const f of b.facts){assert.equal(f.turnId,'m1');assert(input().turns[1].text.includes(f.quote));}});
+test('missing credentials fail explicitly, without silent provider fallback',async t=>{const status=await (await fetch(`${base}/api/provider`)).json();if(status.configured){t.skip('server has configured Gemini credentials');return;}const data=input();data.mode='gemini';const r=await request(data);assert.equal(r.status,503);assert.match((await r.json()).error,/not configured/);});
+test('cross-origin request rejected',async()=>{const r=await request(input(),'https://unrelated.example');assert.equal(r.status,403);});
+test('invalid payload fails validation',async()=>{const r=await request({mode:'invalid'});assert.equal(r.status,400);});
+test('final agent turn is rejected',async()=>{const data=input();data.turns[1].role='agent';const r=await request(data);assert.equal(r.status,400);});
+test('obvious secrets do not appear in returned evidence',async()=>{const data=input();data.turns[1].text='Soundbox is silent. OTP is 123456 and UPI PIN: 5678';const r=await request(data);assert.equal(r.status,200);const text=await r.text();assert.doesNotMatch(text,/123456|5678/);});

@@ -1,0 +1,14 @@
+import type { Fact, Topic, Turn } from '../interview.ts';
+export type StageName = 'prepare' | 'extract' | 'verify' | 'retrieve' | 'critique' | 'plan' | 'gate' | 'checkpoint';
+export type TraceStep = { stage: StageName; label: string; executor: 'code' | 'model'; status: 'passed' | 'blocked'; durationMs: number; summary: string };
+export type QuestionCandidate = { topic: Topic; score: number; reason: string; question: string; priority: 'clarify' | 'discover' };
+export type Challenge = { id: string; type: 'amount_ambiguity' | 'contradiction' | 'unsupported_claim' | 'unavailable_evidence'; topic: Topic; summary: string; turnIds: string[]; question: string; resolved: boolean };
+export type KnowledgeCard = { id: string; title: string; text: string; url: string | null; basis: 'official_source' | 'design_rule'; tags: string[] };
+export type ToolName = 'get_coverage' | 'retrieve_context' | 'inspect_evidence';
+export type ToolCall = { name: ToolName; summary: string; count: number };
+export type RunTrace = { id: string; graphVersion: string; provider: 'guided' | 'gemini'; startedAt: number; durationMs: number; steps: TraceStep[]; tools: ToolCall[]; candidates: QuestionCandidate[]; challenges: Challenge[]; knowledge: KnowledgeCard[]; selectedTopic: Topic | null; selectionReason: string; tokens: { input: number; output: number }; modelCalls: number; repairs?:{role:string;reason:string}[]; gate: 'ask' | 'review' | 'clarify'; checkpoint: { turnId: string; fingerprint: string }; };
+export type CandidateClaim = { topic: Topic; value: string; quote: string; turn_id: string; estimated: boolean };
+export type AgentInput = { turns: Turn[]; facts: Fact[]; language: string; mode: 'guided' | 'gemini' };
+export type ModelRequest = { role: 'extractor' | 'critic' | 'planner'; system: string; data: unknown; schema: Record<string, unknown>; signal: AbortSignal };
+export type ModelReply = { value: unknown; inputTokens: number; outputTokens: number };
+export type ModelClient = (request: ModelRequest) => Promise<ModelReply>;

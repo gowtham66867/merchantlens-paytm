@@ -1,0 +1,175 @@
+1
+00:00:00,000 --> 00:00:06,222
+Meet MerchantLens, a problem intake interviewer built for the Paytm and AI Garage buildathon.
+
+2
+00:00:06,222 --> 00:00:10,222
+It turns ambiguous merchant conversations into evidence-linked problem briefs.
+
+3
+00:00:10,222 --> 00:00:16,000
+This is the deployed Cloud Run app, using clearly labelled synthetic merchant data.
+
+4
+00:00:16,000 --> 00:00:20,632
+We begin with consent, a merchant alias, and the interview language.
+
+5
+00:00:20,632 --> 00:00:24,000
+Public demo drafts stay in the visitor's browser.
+
+6
+00:00:24,000 --> 00:00:26,526
+This recording uses typed synthetic responses.
+
+7
+00:00:26,526 --> 00:00:32,000
+Browser voice controls are available, and the merchant reviews the text before sending.
+
+8
+00:00:32,000 --> 00:00:39,837
+The merchant says the Soundbox was silent and thinks two thousand four hundred rupees were lost.
+
+9
+00:00:39,837 --> 00:00:45,224
+The guided interviewer does not accept that as verified financial loss.
+
+10
+00:00:45,224 --> 00:00:48,653
+It asks what the amount actually represents.
+
+11
+00:00:48,653 --> 00:00:56,000
+This is a labelled rules-based turn, with a concrete clarification instead of a generic questionnaire.
+
+12
+00:00:56,000 --> 00:01:02,118
+We clarify that the amount was affected payment value, not a confirmed loss.
+
+13
+00:01:02,118 --> 00:01:09,176
+Now we explicitly select live Gemini and report that the merchant app showed successful payments.
+
+14
+00:01:09,176 --> 00:01:14,353
+The next question separates bank settlement from the missing audio announcement.
+
+15
+00:01:14,353 --> 00:01:20,000
+The application preserves the distinction between a merchant report and independent verification.
+
+16
+00:01:20,000 --> 00:01:31,265
+The agent control room exposes the actual run: extraction, provenance verification, parallel critique and context retrieval, question planning, and a code policy gate.
+
+17
+00:01:31,265 --> 00:01:36,653
+Model calls, tokens, tools, and timing come from the completed request.
+
+18
+00:01:36,653 --> 00:01:39,592
+Source removal shows dependencies, not causation.
+
+19
+00:01:39,592 --> 00:01:44,000
+Retrieved product context is kept separate from merchant evidence.
+
+20
+00:01:44,000 --> 00:01:48,840
+We finish the remaining questions with the labelled synthetic sample answers.
+
+21
+00:01:48,840 --> 00:01:56,760
+The merchant describes unknown settlement, recurrence, checkout disruption, the phone-sharing workaround, earlier troubleshooting, constraints, and a useful outcome.
+
+22
+00:01:56,760 --> 00:01:58,960
+Questions adapt to captured information.
+
+23
+00:01:58,960 --> 00:02:06,000
+Full topic coverage means the topics were addressed; it does not make the claims independently true.
+
+24
+00:02:06,000 --> 00:02:11,000
+In the evidence chain, each observation links to its original merchant quote.
+
+25
+00:02:11,000 --> 00:02:13,917
+Selecting the quote highlights the source turn.
+
+26
+00:02:13,917 --> 00:02:20,167
+The amount interpretation is clarified, while financial loss, settlement verification, and root cause remain open.
+
+27
+00:02:20,167 --> 00:02:26,000
+A builder gets both the reported problem and the gaps that still need investigation.
+
+28
+00:02:26,000 --> 00:02:28,872
+The synthetic interview includes a customer name.
+
+29
+00:02:28,872 --> 00:02:32,564
+Removing it scrubs retained transcript text, observations, and history.
+
+30
+00:02:32,564 --> 00:02:37,487
+A correction or redaction creates a new version and invalidates previous approvals.
+
+31
+00:02:37,487 --> 00:02:42,000
+The merchant controls what is retained and what can be exported.
+
+32
+00:02:42,000 --> 00:02:44,500
+The internal brief preserves investigation detail.
+
+33
+00:02:44,500 --> 00:02:49,500
+The anonymized version omits names, exact amounts, source identifiers, and raw quotes.
+
+34
+00:02:49,500 --> 00:02:53,667
+Each audience requires a separate approval for the current version.
+
+35
+00:02:53,667 --> 00:02:57,417
+The agent cannot approve itself or submit anything externally.
+
+36
+00:02:57,417 --> 00:03:02,000
+The merchant reviews the draft and explicitly approves the selected audience.
+
+37
+00:03:02,000 --> 00:03:08,462
+Approval unlocks actual JSON and Markdown downloads, ready for a builder or operations reviewer.
+
+38
+00:03:08,462 --> 00:03:14,000
+Public demo interviews stay in each browser; private cloud checkpoints remain protected.
+
+39
+00:03:14,000 --> 00:03:23,290
+Seven guided probes test money ambiguity, unavailable bank evidence, early stopping, prompt injection, device damage and fabricated sources.
+
+40
+00:03:23,290 --> 00:03:30,000
+These observable regression checks do not establish live-model accuracy or production interview quality.
+
+41
+00:03:30,000 --> 00:03:34,500
+MerchantLens turns conversations into traceable briefs with human review.
+
+42
+00:03:34,500 --> 00:03:37,000
+Live Gemini and exports work.
+
+43
+00:03:37,000 --> 00:03:39,500
+Paytm APIs are not connected.
+
+44
+00:03:39,500 --> 00:03:44,000
+Voice transcription accuracy still requires a human spoken-input test.

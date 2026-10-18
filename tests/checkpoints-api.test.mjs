@@ -1,0 +1,13 @@
+import{test}from'node:test';import assert from'node:assert/strict';
+import{newSession}from'../lib/interview.ts';
+const base=process.env.TEST_BASE_URL||'http://127.0.0.1:5173';
+if(!['127.0.0.1','localhost'].includes(new URL(base).hostname))throw Error('This suite uses the Sites local-auth fixture and must only run against loopback.');
+const cookie='__sites_local_auth=1';
+const call=(path,init={})=>fetch(base+path,{...init,headers:{Cookie:cookie,'Content-Type':'application/json',...init.headers}});
+const s=newSession('en-IN',true);s.id='ML-TEST-'+crypto.randomUUID().slice(0,8).toUpperCase();let savedAt;
+test('checkpoint endpoint rejects unauthenticated and spoofed identity requests',async()=>{const r=await fetch(base+'/api/checkpoints');assert.equal(r.status,401);const spoof=await fetch(base+'/api/checkpoints',{headers:{'oai-authenticated-user-id':'another-user','oai-authenticated-user-email':'fake@example.test'}});assert.equal(spoof.status,401);});
+test('authenticated checkpoint saves and restores a completed-turn snapshot',async()=>{const r=await call('/api/checkpoints',{method:'PUT',body:JSON.stringify({session:s})});assert.equal(r.status,200);const b=await r.json();savedAt=b.savedAt;assert(b.saved);const restored=await call('/api/checkpoints?id='+s.id);assert.equal(restored.status,200);const data=await restored.json();assert.equal(data.session.id,s.id);assert.deepEqual(data.session.turns,s.turns);});
+test('duplicate save is idempotent',async()=>{const r=await call('/api/checkpoints',{method:'PUT',body:JSON.stringify({session:s})});assert.equal(r.status,200);assert.equal((await r.json()).idempotent,true);});
+test('older checkpoint and conflicting same-version payload are refused',async()=>{const newer={...s,version:2};const r=await call('/api/checkpoints',{method:'PUT',body:JSON.stringify({session:newer})});assert.equal(r.status,200);savedAt=(await r.json()).savedAt;const old=await call('/api/checkpoints',{method:'PUT',body:JSON.stringify({session:s})});assert.equal(old.status,409);const changed=await call('/api/checkpoints',{method:'PUT',body:JSON.stringify({session:{...newer,alias:'Changed'}})});assert.equal(changed.status,409);});
+test('approval-only update requires current snapshot stamp',async()=>{const changed={...s,version:2,approvedInternal:2};const r=await call('/api/checkpoints',{method:'PUT',body:JSON.stringify({session:changed,expectedSavedAt:savedAt})});assert.equal(r.status,200);const restored=await(await call('/api/checkpoints?id='+s.id)).json();assert.equal(restored.session.approvedInternal,2);});
+test('unknown checkpoint does not expose another account record',async()=>{const r=await call('/api/checkpoints?id=ML-NOT-A-REAL-CHECKPOINT');assert.equal(r.status,404);});
