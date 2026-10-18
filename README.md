@@ -65,11 +65,59 @@ When Gemini is configured, allow recorded-audio processing, click the microphone
 
 ## Architecture
 
-React / Vinext client → privacy boundary → extraction → provenance verifier → parallel read-only tools and independent critique → question planner → code gate → turn checkpoint → human review → approved audience-specific brief.
+### Public Cloud Run application
 
-The graph uses deterministic role adapters in guided mode and separately scoped model calls in Gemini mode. It does not represent rules as AI inference. See `docs/ARCHITECTURE.md` for boundaries, budgets, memory, and failure behavior.
+```mermaid
+flowchart TD
+    Merchant["Merchant"] --> Input["React / Vinext interview workspace"]
+    Input --> Text["Typed text or external Wispr dictation"]
+    Input --> Record["MediaRecorder: short audio clip"]
+    Record -->|"Explicit audio consent"| STT["Cloud Run /api/transcribe"]
+    STT --> Google["Gemini audio transcription"]
+    Google --> Draft["Editable transcript"]
+    Text --> Draft
+    Draft -->|"Merchant reviews and clicks Send"| API["Cloud Run /api/interview"]
+    API --> Harness["Bounded interview harness"]
+    Harness --> Result["Next question or review-ready state, with run trace"]
+    Result --> Input
+    Result --> Speech["Browser speechSynthesis"]
+    Speech -->|"Available device voice"| Merchant
+    Input <-->|"Interview progress"| Local[("Browser local storage")]
+    Input --> Review["Review evidence, correct and redact"]
+    Review --> Approval["Separate approval for each audience and version"]
+    Approval --> Export["Internal or anonymized JSON / Markdown"]
+    Secrets["Google Secret Manager"] -.->|"Server-side runtime key injection"| API
+    Secrets -.->|"Server-side runtime key injection"| STT
+```
 
-Browser voice transcription uses Web Speech recognition where supported. Speech playback uses speechSynthesis. No audio is retained by the app. A browser may send speech to its provider. Text persists in local storage on the current device. Guided transcripts are processed through the local application's server. In Gemini mode, scrubbed interview text is sent to Google; consent covers these modes. Explicit Save checkpoint stores the interview and trace in the signed-in account’s D1 record. Saving is opt-in; nothing is automatically migrated from browser storage. There is no shared team database or Paytm API access. After redacting locally, save the new version to replace any earlier cloud snapshot.
+The public demo runs on **Google Cloud Run**, packaged with Docker. Server credentials never reach the browser. Recorded audio goes to Google only after audio consent and is not persisted by MerchantLens. Audio capture/transcription and interview reasoning are separate requests. Wispr is external dictation into the text field, not a connected Wispr API.
+
+### Bounded agent harness
+
+```mermaid
+flowchart TD
+    Prepare["1. Prepare: validate input and scrub common secrets"] --> Extract["2. Extract proposed claims and tool requests"]
+    Extract --> Verify["3. Code verifies exact source quotes and turn IDs"]
+    Verify --> Retrieve["4a. Read-only tools: coverage, evidence, curated context"]
+    Verify --> Critic["4b. Critic challenges unsupported interpretations"]
+    Retrieve --> Plan["5. Planner ranks missing information and ambiguity"]
+    Critic --> Plan
+    Plan --> Gate["6. Code gate enforces topic, language and response rules"]
+    Gate --> Checkpoint["7. Record source fingerprint and observed run trace"]
+    Checkpoint --> Return["Return validated result to the browser"]
+    Limits["Per interview turn: at most 4 model calls, 3 tool calls and 1 shared repair"] -.-> Extract
+    Limits -.-> Critic
+    Limits -.-> Plan
+    Failure["Provider or validation failure: preserve answer and commit no new interview state"] -.-> Return
+```
+
+Critique and retrieval run **in parallel after source verification**. Gemini mode uses three separately scoped roles on the configured Gemini model; guided mode uses deterministic code adapters. These are roles in one harness, not independent model agents. The eight observed stages count retrieval and critique separately. The trace checkpoint above is a turn fingerprint, not a public cloud database write.
+
+Corrections and redactions create a new interview version and invalidate earlier approvals. The merchant separately approves internal and anonymized exports. Source ablation reveals which observations lose their source when a turn is removed; it does not establish causality.
+
+**Current storage boundary:** public interviews persist in the visitor's browser. Public checkpoint APIs reject reads and writes. Optional private deployments have separate account-scoped storage adapters: D1 on Sites or Cloud Storage on Cloud Run. Neither is a shared public-demo interview database. No Paytm transaction, refund or support-ticket API is connected.
+
+See [the architecture details](docs/ARCHITECTURE.md), [live-demo evidence](docs/LIVE-VOICE-DEMO.md), and [validation record](docs/VALIDATION.md).
 
 Core files:
 

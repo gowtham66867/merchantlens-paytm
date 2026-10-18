@@ -1,4 +1,4 @@
-# MerchantLens v2 architecture
+# MerchantLens architecture
 
 ## Scope
 
@@ -8,23 +8,23 @@ The v2 runtime is a typed, bounded agent graph. In guided mode, its roles execut
 
 ```mermaid
 flowchart TD
-    Input[Merchant voice / Wispr dictation / typed text] --> Prepare[Privacy and input boundary]
-    Prepare --> Extract[Evidence extractor]
-    Extract --> Verify[Code provenance verifier]
-    Verify --> Tools[Read-only tool dispatcher]
-    Verify --> Critic[Independent evidence critic]
-    Tools --> Plan[Question planner]
+    Prepare["1. Prepare: validate input and scrub common secrets"] --> Extract["2. Extract proposed claims and tool requests"]
+    Extract --> Verify["3. Code verifies exact source quotes and turn IDs"]
+    Verify --> Retrieve["4a. Read-only tools: coverage, evidence, curated context"]
+    Verify --> Critic["4b. Critic challenges unsupported interpretations"]
+    Retrieve --> Plan["5. Planner ranks missing information and ambiguity"]
     Critic --> Plan
-    Plan --> Gate[Code budget and response gate]
-    Gate -->|Ask or clarify| Input
-    Gate -->|Ready, stopped, or turn budget reached| Review[Merchant correction and review]
-    Gate --> Trace[Inspectable turn checkpoint and run trace]
-    Trace -->|Explicit Save checkpoint| D1[(Account-owned D1 snapshot)]
-    D1 -->|Explicit Restore| Input
-    Review --> Approve[Version-bound audience approval]
-    Approve --> Internal[Internal evidence-linked brief]
-    Approve --> Public[Conservative anonymized brief]
+    Plan --> Gate["6. Code gate enforces topic, language and response rules"]
+    Gate --> Checkpoint["7. Record source fingerprint and observed run trace"]
+    Checkpoint --> Return["Return validated result to the browser"]
+    Limits["Per interview turn: at most 4 model calls, 3 tool calls and 1 shared repair"] -.-> Extract
+    Limits -.-> Critic
+    Limits -.-> Plan
+    Failure["Provider or validation failure: preserve answer and commit no new interview state"] -.-> Return
 ```
+
+The diagram describes the public Cloud Run harness. Public sessions stay in browser storage, and public checkpoint APIs return 403. The checkpoint stage records a source fingerprint and run trace. Private D1 or Cloud Storage save/restore adapters are optional deployment variants. See the [README runtime diagram](../README.md#architecture) for consented audio transcription, browser playback, approvals and export.
+
 
 ## Boundaries and responsibilities
 
