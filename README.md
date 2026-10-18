@@ -69,28 +69,23 @@ When Gemini is configured, allow recorded-audio processing, click the microphone
 
 ```mermaid
 flowchart TD
-    Merchant["Merchant"] --> Input["React / Vinext interview workspace"]
-    Input --> Text["Typed text or external Wispr dictation"]
-    Input --> Record["MediaRecorder: short audio clip"]
-    Record -->|"Explicit audio consent"| STT["Cloud Run /api/transcribe"]
+    Merchant["Merchant"] --> Input["Browser interview workspace"]
+    Input --> Record["MediaRecorder audio clip"]
+    Record -->|"Audio consent"| STT["Cloud Run transcription API"]
     STT --> Google["Gemini audio transcription"]
     Google --> Draft["Editable transcript"]
-    Text --> Draft
-    Draft -->|"Merchant reviews and clicks Send"| API["Cloud Run /api/interview"]
-    API --> Harness["Bounded interview harness"]
-    Harness --> Result["Next question or review-ready state, with run trace"]
-    Result --> Input
-    Result --> Speech["Browser speechSynthesis"]
-    Speech -->|"Available device voice"| Merchant
-    Input <-->|"Interview progress"| Local[("Browser local storage")]
-    Input --> Review["Review evidence, correct and redact"]
-    Review --> Approval["Separate approval for each audience and version"]
+    Input -->|"Typed text or external Wispr dictation"| Draft
+    Draft -->|"Review and Send"| API["Cloud Run interview API"]
+    API --> Harness["Bounded agent harness"]
+    Harness --> Result["Validated result and observed trace"]
+    Result --> Next["Next question and browser speech playback"]
+    Result -->|"Finish and review"| Review["Evidence review, correction and redaction"]
+    Review --> Approval["Separate audience and version approval"]
     Approval --> Export["Internal or anonymized JSON / Markdown"]
-    Secrets["Google Secret Manager"] -.->|"Server-side runtime key injection"| API
-    Secrets -.->|"Server-side runtime key injection"| STT
+    Draft -.-> Local[("Browser-local interview state")]
 ```
 
-The public demo runs on **Google Cloud Run**, packaged with Docker. Server credentials never reach the browser. Recorded audio goes to Google only after audio consent and is not persisted by MerchantLens. Audio capture/transcription and interview reasoning are separate requests. Wispr is external dictation into the text field, not a connected Wispr API.
+The public demo runs on **Google Cloud Run**, packaged with Docker. Google Secret Manager injects the server-side runtime key. Credentials never reach the browser. Recorded audio goes to Google only after audio consent and is not persisted by MerchantLens. Audio capture/transcription and interview reasoning are separate requests. Wispr is external dictation into the text field, not a connected Wispr API.
 
 ### Bounded agent harness
 
