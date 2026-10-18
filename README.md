@@ -36,6 +36,10 @@ GEMINI_MODEL=gemini-3.5-flash-lite
 
 Do not commit credentials. No provider key is required for the guided demo. Wispr Flow can dictate into the answer field, but is not the reasoning backend. Gemini is shown as unavailable until the server reports a configured key. Provider failure preserves the typed answer and never silently changes to the guided engine. The default model ID is configurable and must be available to your project.
 
+## Recorded voice input
+
+When Gemini is configured, allow recorded-audio processing, click the microphone, speak for up to 45 seconds, then stop. Gemini transcribes the clip into the answer field. Review and send explicitly. Audio is sent to Google but is not stored by MerchantLens. This avoids reliance on the browser Web Speech network service. Synthetic spoken audio passed a live transcription smoke test; real microphone and noisy-audio accuracy remain to be validated. The recorded demo predates this fallback.
+
 ## Working features
 
 - Responsive operational workspace with light/dark modes and searchable brief library.
