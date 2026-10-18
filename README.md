@@ -161,3 +161,7 @@ node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1
 Apply only once to a fresh local database. Hosted migrations are applied by Sites publication. Open the Agent control room, sign in using the local sign-in link when prompted, and save or restore a checkpoint explicitly.
 
 See `docs/REFERENCE-REVIEW.md` for the Sanjay Prasad/LVL, ARGUS, Apollo and ModelProof comparison, including which prize claims were independently supported by the organizer.
+
+### Voice improvements
+
+Gemini now provides natural interviewer playback alongside adjustable local pause detection, noise suppression, editable transcripts, and device-voice fallback. See [voice behavior and validation](docs/VOICE-UPGRADE.md) for the exact flow and limitations. OpenAI audio is currently blocked by exhausted API credit; GPT-Live is not connected.
