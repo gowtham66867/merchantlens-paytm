@@ -14,6 +14,10 @@ Sole participant: **Gowtham Ramachandra**.
 
 Current public deployment uses browser-local drafts; private cloud checkpoint APIs are intentionally unavailable. Live Gemini was smoke-tested. Human spoken-input accuracy remains unvalidated. See the latest section of docs/VALIDATION.md for current results.
 
+## Presentation
+
+[Download the detailed five-slide PowerPoint](docs/MerchantLens-Five-Slide-Pitch.pptx). It includes speaker notes on the business case, verifiability, voice/runtime architecture, agent contracts, guardrails, evaluations, ROI assumptions and proposed Paytm integration.
+
 ## Run
 
 Requires Node.js 22.13+ (Node 24 tested).
@@ -38,15 +42,15 @@ Do not commit credentials. No provider key is required for the guided demo. Wisp
 
 ## Languages and live participant demo
 
-New interviews support **English, हिन्दी (Hindi), ಕನ್ನಡ (Kannada), and romanized Hinglish**. The selected language controls recorded-audio transcription, guided questions and live Gemini planning. Speech playback requires a matching device voice; the interface warns when one is unavailable. Source quotes keep their original script; the workspace and internal summaries may remain English.
+New interviews support **English, हिन्दी (Hindi), ಕನ್ನಡ (Kannada), and romanized Hinglish**. The selected language controls recorded-audio transcription, guided questions and live Gemini planning. Gemini natural playback is available, with selectable device speech as a fallback; device playback requires a matching installed voice. Source quotes keep their original script; the workspace and internal summaries may remain English.
 
 [See the participant’s actual live voice session: transcript, screenshot and limitations](docs/LIVE-VOICE-DEMO.md). The 3:44 video above is the earlier typed-response walkthrough; no audio from the later participant session was stored.
 
-52 automated tests and TypeScript passed. Live Hindi/Kannada Gemini text smoke tests returned native-script questions with exact source quotes. Native multilingual speech accuracy is not yet benchmarked.
+56 automated tests and TypeScript passed. Live Hindi/Kannada Gemini text smoke tests returned native-script questions with exact source quotes. Native multilingual speech accuracy is not yet benchmarked.
 
 ## Recorded voice input
 
-When Gemini is configured, allow recorded-audio processing, click the microphone, speak for up to 45 seconds, then stop. Gemini transcribes the clip into the answer field. Review and send explicitly. Audio is sent to Google but is not stored by MerchantLens. This avoids reliance on the browser Web Speech network service. Synthetic spoken audio passed a live transcription smoke test; real microphone and noisy-audio accuracy remain to be validated. The recorded demo predates this fallback.
+When Gemini is configured, allow recorded-audio processing, click the microphone, speak for up to 45 seconds, then pause for automatic stopping or press Stop. Pause detection can be disabled or adjusted to 1.2, 2 or 3.5 seconds. Gemini transcribes the clip into the answer field. Review and send explicitly. Audio is sent to Google but is not stored by MerchantLens. This avoids reliance on the browser Web Speech network service. Synthetic spoken audio passed a live transcription smoke test; real microphone and noisy-audio accuracy remain to be validated. The recorded demo predates this fallback.
 
 ## Working features
 
@@ -70,15 +74,18 @@ When Gemini is configured, allow recorded-audio processing, click the microphone
 ```mermaid
 flowchart TD
     Merchant["Merchant"] --> Input["Browser interview workspace"]
-    Input --> Record["MediaRecorder audio clip"]
-    Record -->|"Audio consent"| STT["Cloud Run transcription API"]
+    Input --> Record["MediaRecorder: WebM/Opus preferred, browser fallbacks"]
+    Record --> VAD["Local pause detection: auto-stop or manual Stop"]
+    VAD -->|"Audio consent"| STT["Cloud Run transcription API"]
     STT --> Google["Gemini audio transcription"]
     Google --> Draft["Editable transcript"]
     Input -->|"Typed text or external Wispr dictation"| Draft
     Draft -->|"Review and Send"| API["Cloud Run interview API"]
     API --> Harness["Bounded agent harness"]
     Harness --> Result["Validated result and observed trace"]
-    Result --> Next["Next question and browser speech playback"]
+    Result --> Next["Next question"]
+    Next --> TTS["Gemini natural speech: WAV output"]
+    TTS --> Playback["Browser audio playback; device speech fallback"]
     Result -->|"Finish and review"| Review["Evidence review, correction and redaction"]
     Review --> Approval["Separate audience and version approval"]
     Approval --> Export["Internal or anonymized JSON / Markdown"]
@@ -112,6 +119,14 @@ flowchart TD
 
 Critique and retrieval run **in parallel after source verification**. Gemini mode uses three separately scoped roles on the configured Gemini model; guided mode uses deterministic code adapters. These are roles in one harness, not independent model agents. The eight observed stages count retrieval and critique separately. The trace checkpoint above is a turn fingerprint, not a public cloud database write.
 
+### Communication between the model roles
+
+The orchestrator passes **validated structured JSON and typed interview state** between separately scoped Gemini requests. The extractor returns proposed claims and source quotes; the critic returns rejected topics and challenges; the planner receives ranked candidates, tool outputs and a concise critic summary. Code joins the parallel branches and enforces the final policy gate. No direct agent-to-agent audio, A2A protocol or message broker is implemented.
+
+Microphone audio prefers **Opus in WebM**. Tested Gemini playback was **16-bit PCM, 24 kHz, mono in WAV**. These audio formats are separate from the JSON used by the interview roles; MP4/Ogg or device playback may use browser-dependent formats.
+
+See the [communication sequence, actual role contracts, illustrative JSON and codec details](docs/AGENT-COMMUNICATION.md).
+
 Corrections and redactions create a new interview version and invalidate earlier approvals. The merchant separately approves internal and anonymized exports. Source ablation reveals which observations lose their source when a turn is removed; it does not establish causality.
 
 **Current storage boundary:** public interviews persist in the visitor's browser. Public checkpoint APIs reject reads and writes. Optional private deployments have separate account-scoped storage adapters: D1 on Sites or Cloud Storage on Cloud Run. Neither is a shared public-demo interview database. No Paytm transaction, refund or support-ticket API is connected.
@@ -132,7 +147,7 @@ Core files:
 ## Verify
 
 ```sh
-node --experimental-strip-types --test tests/interview.test.ts tests/agents.test.ts tests/checkpoints.test.ts
+node --experimental-strip-types --test tests/languages.test.ts tests/transcription.test.ts tests/interview.test.ts tests/agents.test.ts tests/checkpoints.test.ts tests/cloudrun-store.test.ts tests/request-origin.test.ts tests/voice-activity.test.ts tests/speech.test.ts
 # With the local dev server and migrated D1 running:
 node --test tests/api.test.mjs
 node --experimental-strip-types --test tests/checkpoints-api.test.mjs

@@ -27,7 +27,7 @@ flowchart TD
     Failure --> Preserved["Return error; browser preserves answer and prior interview state"]
 ```
 
-The diagram describes the public Cloud Run harness. Public sessions stay in browser storage, and public checkpoint APIs return 403. The checkpoint stage records a source fingerprint and run trace. Private D1 or Cloud Storage save/restore adapters are optional deployment variants. See the [README runtime diagram](../README.md#architecture) for consented audio transcription, browser playback, approvals and export.
+The diagram describes the public Cloud Run harness. Public sessions stay in browser storage, and public checkpoint APIs return 403. The checkpoint stage records a source fingerprint and run trace. Private D1 or Cloud Storage save/restore adapters are optional deployment variants. See the [README runtime diagram](../README.md#architecture) for consented audio transcription, natural playback, approvals and export, and [Agent communication](AGENT-COMMUNICATION.md) for structured role messages.
 
 
 ## Boundaries and responsibilities
@@ -51,7 +51,7 @@ The diagram describes the public Cloud Run harness. Public sessions stay in brow
 3. **Conditional control:** unresolved money ambiguity or contradictory payment accounts preempt routine field collection. A code gate can override a model's unsafe topic selection.
 4. **Bounded tool use:** live extraction requests a subset of three typed read-only tools. The dispatcher executes only allowlisted functions. Required coverage inspection is added by code.
 5. **Parallel branches:** context retrieval and evidence critique run concurrently after provenance validation. Their outputs join at planning.
-6. **Bounded repair:** a source-invalid live extraction gets one repair attempt. Persistent invalidity aborts the run; it does not commit fabricated evidence.
+6. **Bounded repair:** a schema/source-invalid model response gets at most one shared repair across the extractor, critic and planner. Persistent invalidity aborts the run; it does not commit fabricated evidence.
 7. **Explicit memory:** typed observations, source dependencies, superseded statements, and audit events preserve the interview state outside model context.
 8. **Resumability:** D1 stores explicit account-owned snapshots at completed-turn boundaries. Restore resumes the last completed turn; this is not mid-token/model-call recovery.
 9. **Source ablation:** removing a source identifies dependent observations. It is a dependency test, not causal inference or a claim of formal legal reasoning.
@@ -63,7 +63,7 @@ Scores prioritize consequential ambiguity, missing payment signals, operational 
 
 ## Hard budgets
 
-- Four total model calls per turn, including at most one extraction repair.
+- Four total model calls per turn, including at most one shared role repair.
 - Three read-only tool calls per turn.
 - Fourteen merchant turns before returning an incomplete draft for review.
 - Fifty-five-second graph deadline; client waits sixty-five seconds.
@@ -73,7 +73,7 @@ No autonomous background loops or external writes are available to the model.
 
 ## Storage and concurrency
 
-Local interviews remain in browser local storage by default. Only choosing Save checkpoint uploads the current interview and agent trace to the signed-in account's D1 record. The primary key is `(owner_id, session_id)`, and every query is scoped by trusted Sites identity. Private hosting is preserved.
+Public demo interviews stay in browser local storage; public checkpoint APIs reject reads and writes. Optional private deployments support account-scoped D1 on Sites or Cloud Storage on Cloud Run. In the D1 variant, the primary key is `(owner_id, session_id)` and queries use trusted Sites identity. Cloud Storage uses owner namespaces and generation preconditions. These are deployment alternatives, not a shared public-demo database.
 
 Updates reject older versions, recognize identical retries, and use a conditional database update to detect concurrent changes. Approval-only changes at the same content version require the last observed checkpoint timestamp. A redacted browser interview does not retroactively erase an earlier cloud snapshot: save the new version to replace that snapshot. Existing downloaded copies are outside this control.
 
@@ -85,7 +85,9 @@ Five local context cards contain short paraphrases of official Paytm support inf
 
 ## Voice and Wispr Flow
 
-Browser SpeechRecognition can transcribe when supported. speechSynthesis reads agent turns; activating the microphone interrupts playback. The merchant reviews transcription before sending. Wispr Flow works as an external dictation app writing into the same answer field. No Wispr microphone API or transcription stream is called. Its available connector is read-only access to recorded notes, not an LLM backend. Received text is the evidence source; it may be edited dictation, not a verbatim audio record.
+When Gemini is configured, MediaRecorder captures audio with browser-supported echo cancellation, noise suppression and gain control. Local energy-based voice activity detection can stop on a selected pause; manual Stop is available. The preferred recording codec/container is Opus in WebM, with MP4/Ogg or browser-default fallbacks. Gemini transcribes the bounded clip. Natural question playback uses Gemini TTS and WAV audio; tested output was 16-bit PCM at 24 kHz, mono. Device speech synthesis is selectable and is a fallback. Browser SpeechRecognition remains a legacy option when Gemini is not configured. Activating the microphone interrupts playback. The merchant reviews transcription before sending. Wispr Flow works as an external dictation app writing into the same answer field. No Wispr microphone API or transcription stream is called. Its available connector is read-only access to recorded notes, not an LLM backend. Received text is the evidence source; it may be edited dictation, not a verbatim audio record.
+
+For the complete sequence, JSON role contracts and codec distinctions, see [Agent communication](AGENT-COMMUNICATION.md). For voice limits and observed smoke tests, see [Voice upgrade](VOICE-UPGRADE.md).
 
 ## Deliberate omissions
 
@@ -93,11 +95,11 @@ No decorative framework, autonomous payment execution, unverifiable emotion infe
 
 ## Deployment
 
-Vinext/React and same-origin APIs run as one Sites Worker. D1 is provisioned by Sites; the tracked Drizzle migration is applied at publication. Gemini credentials are runtime server secrets. The application is currently private. No GCP/Cloud Run deployment is claimed.
+The public demo runs Vinext/React and same-origin APIs in a Docker container on Google Cloud Run in asia-south1. Secret Manager supplies the server-side Gemini key. Public browser access is enabled; checkpoint APIs remain disabled in public mode. Sites Worker/D1 and private Cloud Run/Cloud Storage are optional deployment variants. No Paytm API is connected.
 
 ## Validation limit
 
-The model roles, retry bounds, critic rejection, gate override and token accounting have deterministic contract tests using injected clients. Actual Gemini output quality, end-to-end live-model latency, Hindi recognition, and microphone playback remain unvalidated without credentials and the demo device. This architecture is materially stronger than v1, but that is not evidence of a guaranteed winning submission.
+The model roles, retry bounds, critic rejection, gate override and token accounting have deterministic contract tests using injected clients. 56 automated tests and TypeScript passed. Synthetic English, Hindi and Kannada transcription/TTS smoke tests and public WAV playback succeeded. These do not establish live-model interview accuracy, real multilingual word error rate, human listening preference or noisy-shop reliability. OpenAI audio requests were blocked by exhausted credit; GPT-Live is not connected. This architecture is materially stronger than v1, but that is not evidence of a guaranteed winning submission.
 
 ## Timing interpretation
 
