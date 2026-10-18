@@ -50,3 +50,9 @@ The actual Gemini transcription endpoint was exercised with WebM/Opus clips gene
 These tests establish native-script audio processing for the synthetic clips. They are not a fluent-speaker review, an accent/noise benchmark, or proof of verbatim accuracy. In particular, Kannada spelling and punctuation should be reviewed by the merchant before sending. The participant's earlier human test was English.
 
 A later hosted Kannada test returned a mixture of Kannada and unrelated Arabic characters. This prompted an additional script-validation guard: recorded-audio transcription may retry once within the same 45-second deadline and rejects repeated wrong-script output. Hindi/Kannada may retain Latin words actually spoken in English. This guard does not establish spelling or semantic accuracy; review remains required.
+
+## Try a native-language interview
+
+Open the public app, choose **New interview**, select **हिन्दी — Hindi** or **ಕನ್ನಡ — Kannada**, enter an alias and consent, then start. Select Gemini for live model roles. Allow recorded-audio transcription, click the microphone, speak, stop, review the transcript and send. Hinglish remains available separately. Device voices determine whether native spoken output is available.
+
+![Deployed native-language selector](../public/native-languages.png)
