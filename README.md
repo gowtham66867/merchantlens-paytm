@@ -1,3 +1,15 @@
+## Alexa+ simulation and visual support extension — October 2026
+
+Open [the working simulation](https://merchantlens-paytm-412542191970.asia-south1.run.app/?view=alexa) or [the eight-stage support journey](https://merchantlens-paytm-412542191970.asia-south1.run.app/?view=support).
+
+This is an **independent web simulation**, not a live Alexa integration. It uses real Gemini interview calls, reviewed voice input and spoken replies. Optional photos can be covered locally before consented AI analysis; only reviewed notes are retained. No payment verification, Paytm APIs, wake words or Echo connection are claimed.
+
+- [Amazon entry, before/after changes and demo plan](docs/AMAZON-SUBMISSION.md)
+- [Photo data flow, safeguards and limitations](docs/PHOTO-EVIDENCE.md)
+- 67 passing automated tests, including six new image-evidence tests.
+
+---
+
 # MerchantLens
 
 **Every merchant story. A clearer problem.**

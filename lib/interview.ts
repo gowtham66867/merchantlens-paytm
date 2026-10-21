@@ -1,3 +1,4 @@
+import {photoEvidenceSchema,type PhotoEvidence} from './photo-evidence.ts';
 import {supportMarkdown,supportHandoff,type SupportJourney,type SupportStage,type SupportOutcome} from './support-journey.ts';
 import { localQuestion } from './languages.ts';
 import type { RunTrace } from './agents/types';
@@ -5,7 +6,7 @@ export type Topic = 'symptom' | 'payment_status' | 'settlement' | 'frequency' | 
 export type Turn = { id: string; role: 'agent' | 'merchant'; text: string; at: number; topic?: Topic };
 export type Fact = { id: string; topic: Topic; label: string; value: string; quote: string; turnId: string; kind: 'reported' | 'estimate'; previous?: string };
 export type Audit = { id: string; text: string; at: number };
-export type Session = { id: string; alias: string; business: string; language: string; turns: Turn[]; facts: Fact[]; version: number; approvedInternal: number | null; approvedPublic: number | null; status: 'interviewing' | 'review' | 'approved'; summary: string; audit: Audit[]; synthetic: boolean; createdAt: number; provider: 'guided' | 'gemini'; runs?: RunTrace[]; supportJourney?:SupportJourney };
+export type Session = { id: string; alias: string; business: string; language: string; turns: Turn[]; facts: Fact[]; version: number; approvedInternal: number | null; approvedPublic: number | null; status: 'interviewing' | 'review' | 'approved'; summary: string; audit: Audit[]; synthetic: boolean; createdAt: number; provider: 'guided' | 'gemini'; runs?: RunTrace[]; supportJourney?:SupportJourney; photoEvidence?:PhotoEvidence[] };
 export type AgentResult = { response: string; topic?: Topic; facts: Fact[]; ready: boolean; purpose: string; provider: 'guided' | 'gemini'; run?: RunTrace };
 export const topics: { key: Topic; label: string; question: string; hindi: string; purpose: string; sample: string }[] = [
  { key: 'symptom', label: 'What is happening', question: 'Tell me about a recent payment problem at your shop. What happened?', hindi: 'Apni dukaan mein payment ki kisi recent dikkat ke baare mein bataiye. Kya hua tha?', purpose: 'Start with a concrete incident in the merchant’s own words.', sample: 'This morning the Soundbox stayed silent after a customer paid. I think I lost ₹2,400. Customers were waiting at the counter.' },
@@ -73,6 +74,19 @@ export function recordSupportAttempt(s:Session,stage:SupportStage,channel:string
  const attempt={id:uid(),stage,channel:cleanChannel,action:cleanAction,outcome,at,turnId};
  return{...mutate(s,'Support history added. Prior approvals invalidated.'),turns:[...s.turns,{id:turnId,role:'merchant',topic:'attempts',text,at}],facts:upsert(s.facts,{id:uid(),topic:'attempts',label:'Already attempted',value:text,quote:text,turnId,kind:'reported'}),supportJourney:{humanRequested:s.supportJourney?.humanRequested||false,attempts:[...(s.supportJourney?.attempts||[]),attempt]}};
 }
+export function recordPhotoEvidence(s:Session,kind:PhotoEvidence['kind'],note:string,digest:string):Session {
+ if((s.photoEvidence?.length||0)>=8)throw Error('Keep at most eight image notes per interview.');
+ const at=Date.now(),turnId=uid();
+ const evidence=photoEvidenceSchema.parse({id:uid(),kind,note:scrub(note.trim()),digest,turnId,at,basis:'Merchant-reviewed image note; not independently verified'});
+ const text=`Merchant-reviewed image note (${kind}; raw image not retained; not payment or authenticity verification): ${evidence.note}`;
+ return{...mutate(s,'Reviewed image note added. Prior approvals invalidated.'),summary:'',turns:[...s.turns,{id:turnId,role:'merchant',text,at}],photoEvidence:[...(s.photoEvidence||[]),evidence]};
+}
+export function removePhotoEvidence(s:Session,id:string):Session {
+ const evidence=s.photoEvidence?.find(p=>p.id===id);if(!evidence)return s;
+ // Preserve turn IDs for downstream citations, but remove its image-derived text everywhere.
+ const clean=redactSession(s,evidence.note);
+ return{...mutate(clean,'Image note removed. Source text redacted; prior approvals invalidated.'),summary:'',runs:undefined,facts:clean.facts.filter(f=>f.turnId!==evidence.turnId),photoEvidence:clean.photoEvidence?.filter(p=>p.id!==id),turns:clean.turns.map(t=>t.id===evidence.turnId?{...t,text:'[Image note removed by merchant]'}:t)};
+}
 export function requestSupportHuman(s:Session):Session { return{...mutate(s,'Merchant requested human support. No ticket has been sent.'),supportJourney:{attempts:s.supportJourney?.attempts||[],humanRequested:true}}; }
 export function correctFact(s: Session, id: string, value: string): Session {
  const original = s.facts.find(f => f.id === id);
@@ -84,7 +98,7 @@ export function correctFact(s: Session, id: string, value: string): Session {
 export function redactSession(s: Session, term: string): Session {
  if (!term.trim()) return s; const clean = (v: string) => scrub(v, [term.trim()]);
  const deepClean = (value: unknown): unknown => typeof value === 'string' ? clean(value) : Array.isArray(value) ? value.map(deepClean) : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).map(([k,v]) => [k, deepClean(v)])) : value;
- return { ...mutate(s, 'A private detail was removed from retained text. Prior approvals invalidated.'), runs: s.runs ? deepClean(s.runs) as RunTrace[] : undefined, supportJourney:s.supportJourney?deepClean(s.supportJourney) as SupportJourney:undefined, alias: clean(s.alias), business: clean(s.business), summary: clean(s.summary), turns: s.turns.map(t => ({ ...t, text: clean(t.text) })), facts: s.facts.map(f => ({ ...f, value: clean(f.value), quote: clean(f.quote), previous: f.previous ? clean(f.previous) : undefined })), audit: [...s.audit.map(a => ({ ...a, text: clean(a.text) })), { id: uid(), text: 'A private detail was removed from retained text. Prior approvals invalidated.', at: Date.now() }] };
+ return { ...mutate(s, 'A private detail was removed from retained text. Prior approvals invalidated.'), runs: s.runs ? deepClean(s.runs) as RunTrace[] : undefined, supportJourney:s.supportJourney?deepClean(s.supportJourney) as SupportJourney:undefined, photoEvidence:s.photoEvidence?.map(p=>({...p,note:clean(p.note)})), alias: clean(s.alias), business: clean(s.business), summary: clean(s.summary), turns: s.turns.map(t => ({ ...t, text: clean(t.text) })), facts: s.facts.map(f => ({ ...f, value: clean(f.value), quote: clean(f.quote), previous: f.previous ? clean(f.previous) : undefined })), audit: [...s.audit.map(a => ({ ...a, text: clean(a.text) })), { id: uid(), text: 'A private detail was removed from retained text. Prior approvals invalidated.', at: Date.now() }] };
 }
 export function completeness(s: Session) { return Math.round(topics.filter(t => s.facts.some(f => f.topic === t.key)).length / topics.length * 100); }
 export function unknowns(s: Session) { return [...topics.filter(t => !s.facts.some(f => f.topic === t.key)).map(t => t.label), 'Root cause is not independently verified', 'Financial loss is not independently verified', 'Bank settlement has not been independently verified']; }
