@@ -39,9 +39,9 @@ Record actual working UI. The legacy 3:44 video predates these features and must
 ## Submission checklist
 - [ ] Confirm entrant eligibility and ownership; disclose reused foundation and new work.
 - [ ] Review current official rules: https://amazonappdev2026.devpost.com/rules and FAQs: https://amazonappdev2026.devpost.com/details/faqs
-- [ ] Public GitHub repository with an appropriate open-source licence and setup instructions.
-- [ ] Under-three-minute YouTube/Vimeo demo showing the simulated experience actually working.
-- [ ] Product feedback for tools/APIs/SDKs used, based on actual experience.
+- [x] Public GitHub repository with MIT licence and setup instructions.
+- [x] Under-three-minute public narrated walkthrough of captured working UI: https://youtu.be/4YZxqTezDJY (YouTube displays 2:56).
+- [x] Product feedback for tools actually used is included in AMAZON-ENTRY-TEXT.md.
 - [ ] Check teammate invitations if entering as a team; do not reuse another event's team roster without confirmation.
 - [ ] Submit before October 23, 2026 at 12:00 PM PDT / October 24 at 00:30 IST.
 - [ ] Retain an immutable submission snapshot and follow the organizers' freeze instructions after the deadline.

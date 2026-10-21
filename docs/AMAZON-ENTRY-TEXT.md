@@ -41,4 +41,4 @@ Photo safeguards: https://github.com/gowtham66867/merchantlens-paytm/blob/main/d
 ## Video
 The 2:55 narrated walkthrough uses actual UI captures and synthetic merchant text. It is not a continuous human voice recording. Local/source copy: [merchantlens-alexa-walkthrough.mp4](merchantlens-alexa-walkthrough.mp4).
 
-YouTube/Vimeo URL: **pending account identity verification and upload**. The GitHub MP4 is a backup/review copy, not a substitute for the required YouTube/Vimeo URL.
+Public YouTube demo: https://youtu.be/4YZxqTezDJY (published 21 October 2026; YouTube displays 2:56). The GitHub MP4 is a backup/review copy.
