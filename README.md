@@ -4,6 +4,8 @@ Open [the working simulation](https://merchantlens-paytm-412542191970.asia-south
 
 This is an **independent web simulation**, not a live Alexa integration. It uses real Gemini interview calls, reviewed voice input and spoken replies. Optional photos can be covered locally before consented AI analysis; only reviewed notes are retained. No payment verification, Paytm APIs, wake words or Echo connection are claimed.
 
+- [Devpost-ready entry text and product feedback](docs/AMAZON-ENTRY-TEXT.md)
+- [2:55 narrated walkthrough — review copy](docs/merchantlens-alexa-walkthrough.mp4)
 - [Amazon entry, before/after changes and demo plan](docs/AMAZON-SUBMISSION.md)
 - [Photo data flow, safeguards and limitations](docs/PHOTO-EVIDENCE.md)
 - 67 passing automated tests, including six new image-evidence tests.

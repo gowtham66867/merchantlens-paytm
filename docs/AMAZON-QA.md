@@ -17,3 +17,9 @@ This is functional QA using synthetic data, not a merchant pilot, image-authenti
 - Mobile camera capture uses the browser/OS file-picker capability; a physical mobile-camera test remains outstanding.
 
 The narrated video uses captured real UI states and synthetic input, not a continuous human voice recording. The old 3:44 Paytm walkthrough must not be submitted as the new Alexa+ demonstration.
+
+## Production smoke test
+Revision `merchantlens-paytm-00017-bfw` serves the direct Alexa+ entry URL. The eight stages, mobile/file picker controls and synthetic-photo shortcut were checked in Chrome. A real production Gemini image request returned provisional visible-status observations and uncertainties from the covered synthetic screenshot. Nothing from that production draft was committed to the existing interview.
+
+## Demo artifact
+`docs/merchantlens-alexa-walkthrough.mp4`: 175.33 seconds, 1920×1080 H.264/AAC, approximately 4.7 MB. Audio levels were checked and the capture states were visually inspected during QA. This is a narrated sequence of actual UI captures using synthetic merchant input, not continuous microphone footage. YouTube/Vimeo publication is pending account verification.
