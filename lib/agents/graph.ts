@@ -59,7 +59,7 @@ export async function runInterviewGraph(input:AgentInput, model:ModelClient=gemi
   await stage('verify','Provenance verifier','code','Exact merchant quote, unique topic, existing source turn, and no automatic promotion to verified.',()=>verifyClaims(proposed.map(f=>({topic:f.topic,value:f.value,quote:f.quote,turn_id:f.turnId,estimated:f.kind==='estimate'})),prepared.turns));
   let challenges=assessChallenges(prepared.turns,prepared.facts,proposed);
   // These branches depend on validated claims but not on each other.
-  const [toolOutputs,critique]=await Promise.all([
+  let [toolOutputs,critique]=await Promise.all([
    stage('retrieve','Read-only context tools','code',`Execute only allowlisted tools, bounded to ${LIMITS.toolCalls} calls. Local source retrieval, not live web RAG.`,()=>toolNames.map(name=>{
     if(run.tools.length>=LIMITS.toolCalls)throw new Error('Tool budget exceeded.');
     const result=dispatchTool(name,proposed,merchantCount,prepared.turns.filter(t=>t.role==='merchant').map(t=>t.text).join(' '));run.tools.push(result.call);run.knowledge.push(...result.knowledge);return{name,output:result.output};
@@ -73,6 +73,7 @@ export async function runInterviewGraph(input:AgentInput, model:ModelClient=gemi
    if(!c.turn_ids.every(id=>prepared.turns.some(t=>t.id===id&&t.role==='merchant')))throw new Error('Critic challenge cites an unavailable source.');
    challenges.push({id:`critic-${i}`,type:'unsupported_claim',topic:c.topic,summary:scrub(c.summary),turnIds:c.turn_ids,question:scrub(c.question),resolved:false});
   }}
+  if(critique){toolOutputs=toolOutputs.map(t=>t.name==='get_coverage'?{...t,output:{captured:[...new Set(proposed.map(f=>f.topic))],merchantTurns:merchantCount}}:t.name==='inspect_evidence'?{...t,output:proposed.map(f=>({topic:f.topic,source:f.turnId,kind:f.kind,corrected:Boolean(f.previous)}))}:t);}
   run.challenges=challenges;run.candidates=rankQuestions(prepared.turns,proposed,challenges,prepared.language);
   const critical=run.candidates.find(c=>c.priority==='clarify');
   const exhausted=merchantCount>=LIMITS.merchantTurns;
