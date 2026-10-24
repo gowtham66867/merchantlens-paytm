@@ -15,3 +15,11 @@ A separate fix filters critic-rejected observations out of claim-dependent tool 
 Validation on 24 October 2026: 74 automated tests pass, including seven new regressions. TypeScript and production build pass. Browser QA created DEMO-1, retried, refreshed and retried again: one mock case remained. Voice, physical mobile-camera accuracy, real support integration and a merchant pilot remain unvalidated for this extension.
 
 This work is on merchantlens-resolution-sandbox. It does not replace the submitted Amazon deployment or amend any competition submission. No 9.9 rating, measured ROI or production readiness is claimed.
+
+## Separate public deployment
+
+Deployed 24 October 2026 as `merchantlens-resolution-00001-bkj` in project `billing-dashboard-505116`, region `asia-south1`, using `gowtham@texmed.us`.
+
+https://merchantlens-resolution-412542191970.asia-south1.run.app/?view=support
+
+Public HTTP 200 and provider configuration checked. Production browser QA created DEMO-1, retried and reloaded: exactly one mock case remained. Gemini is configured using the existing runtime secret reference; this deployment check did not benchmark live voice/model quality. Cloud Run minimum instances 0, maximum 2, concurrency 8 and 90-second request timeout. Browser-local mock-case limitations still apply. The original merchantlens-paytm service was not updated.
